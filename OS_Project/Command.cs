@@ -14,27 +14,7 @@ namespace OS_Project
 {
     internal class Command
     {
-        public static void DisplayAllCommandsHelp()
-        {
-            Console.WriteLine("Available commands:\n");
-            Console.WriteLine("cd             Displays the name of or changes the current directory.\n");
-            Console.WriteLine("cls            Clear the console screen.\n");
-            Console.WriteLine("dir            Displays a list of files and subdirectories in a directory.\n");
-            Console.WriteLine("exit           Quits the CMD.EXE program (command interpreter).\n");
-            Console.WriteLine("copy           Copies one or more files to another location.\n");
-            Console.WriteLine("del            Deletes one or more files.\n");
-            Console.WriteLine("help           Display help for all commands or a specific command\n");
-            Console.WriteLine("md             Creates a directory.\n");
-            Console.WriteLine("rd             Removes a directory.\n");
-            Console.WriteLine("rename         Renames a file or files.\n");
-            Console.WriteLine("type           Displays the contents of a text file.\n");
-            Console.WriteLine("import         Import text file(s) from your computer.\n");
-            Console.WriteLine("export         Export text file(s) to your computer.\n");
-        }
-
-        public static void DisplayCommandHelp(string specificCommand)
-        {
-            Dictionary<string, string> descriptions = new Dictionary<string, string> {
+        static Dictionary<string, string> commands = new Dictionary<string, string> {
             { "cd", "Displays the name of or changes the current directory" },
             { "cls", "Clear the console screen" },
             { "dir", "Displays a list of files and subdirectories in a directory." },
@@ -48,39 +28,42 @@ namespace OS_Project
             { "type", "Displays the contents of a text file." },
             { "import", "Import text file(s) from your computer." },
             { "export", "Export text file(s) to your computer." },  };
-
-            if (descriptions.ContainsKey(specificCommand))
+        public static void DisplayAllCommandsHelp()
+        {
+            foreach (var command in commands)
             {
-                Console.WriteLine($"{specificCommand}\t\t{descriptions[specificCommand]}");
-            }
-            else
-            {
-                Console.WriteLine($"Command '{specificCommand}' is not supported by the help utility.");
+                Console.WriteLine($"{command.Key}\t{command.Value}\n");
             }
         }
 
-
+        public static void DisplayCommandHelp(string specificCommand)
+        {
+            if (commands.ContainsKey(specificCommand))
+            {
+                Console.WriteLine($"{specificCommand}\t\t{commands[specificCommand]}");
+            }
+            else
+            {
+                Console.WriteLine($"Command '{specificCommand}' is not supported.");
+            }
+        }
 
         public static void Cls()
         {
             Console.Clear();
         }
 
-
-
         public static void Exit()
         {
             Environment.Exit(0);
         }
-
-
 
         public static void Make_Directory(string name)
         {
             int index = Program.currentDirectory.Search(name);
             if (index != -1)
             {
-                Console.WriteLine("Error: Directory with the same name already exists.");
+                Console.WriteLine($"The directory '{name}' is already exists.");
             }
             else
             {
@@ -104,7 +87,7 @@ namespace OS_Project
             int index = Program.currentDirectory.Search(name);
             if (index == -1)
             {
-                Console.WriteLine("Error: Directory not found.");
+                Console.WriteLine("The directory is not found.");
             }
             else
             {
@@ -126,15 +109,35 @@ namespace OS_Project
 
 
 
-        public static void Display_Directory()
+        public static void Display_Directory(List<string> pathParts)
         {
-            Console.WriteLine("Directory Listing:");
-            foreach (Directory_Entry entry in Program.currentDirectory.directoryTable)
+            try
             {
-                Console.WriteLine(entry.name);
+                var directory = getDirectory(pathParts);
+                Console.WriteLine($"\nDirectory of {directory.GetCurrentPath()}");
+                Console.WriteLine("============");
+                int numOfFiles = 0, numOfDirs = 0;
+                foreach (var entry in directory.directoryTable)
+                {
+                    if (entry.attribute == 0)
+                    {
+                        numOfFiles++;
+                    }
+                    else
+                    {
+                        numOfDirs++;
+                    }
+                    Console.WriteLine($"{(entry.attribute == 0 ? entry.size.ToString() : "<DIR>")}\t{new string(entry.name)}");
+                }
+                Console.WriteLine("-------------------");
+                Console.WriteLine($"{numOfFiles} File(s)\t {directory.size} bytes");
+                Console.WriteLine($"{numOfDirs} Dir(s)\t {MiniFat.Get_Free_Space()} bytes free\n");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Invalid Path Directory");
             }
         }
-
 
 
         public static void Rename(string oldName, string newName)
@@ -154,17 +157,14 @@ namespace OS_Project
                 }
                 else
                 {
-                    Console.WriteLine($"Error: '{newName}' is the same as the old name.");
+                    Console.WriteLine($"'{newName}' is the same as the old name.");
                 }
             }
             else
             {
-                Console.WriteLine("Error: The specified name is not a file.");
+                Console.WriteLine("The specified name is not a file.");
             }
         }
-
-
-
 
         public static void Type(string name)
         {
@@ -180,13 +180,10 @@ namespace OS_Project
             }
             else
             {
-                Console.WriteLine("Error: The specified name is not a file.");
+                Console.WriteLine($"Failed: There is no a file named '{name}'");
             }
 
         }
-
-
-
 
         public static void Delete_File(string name)
         {
@@ -253,17 +250,15 @@ namespace OS_Project
         {
             if (System.IO.File.Exists(path))
             {
-
-                string[] pathParts = path.Split('\\');
-                string fileName = pathParts[pathParts.Length - 1];
+                string fileName = path.Split('\\').Last();
                 string fileContent = System.IO.File.ReadAllText(path);
                 int size = fileContent.Length;
                 int index = Program.currentDirectory.Search(fileName);
-                int fc = 0;
+                int first_cluster = 0;
 
                 if (index == -1)
                 {
-                    File_Entry f = new File_Entry(fileName, 0, size, fc, fileContent, Program.currentDirectory);
+                    File_Entry f = new File_Entry(fileName, 0, size, first_cluster, fileContent, Program.currentDirectory);
                     f.Write_File();
                     Directory_Entry d = new Directory_Entry(fileName, 0, size, f.first_cluster);
                     Program.currentDirectory.directoryTable.Add(d);
@@ -358,9 +353,50 @@ namespace OS_Project
                 Console.WriteLine("Error: Destination directory not found.");
             }
         }
+
+        static private Directory getDirectory(List<string> path)
+        {
+            Directory current = Program.currentDirectory;
+            current.Read_Directory();
+            if (path.Count == 0)
+            {
+                return current;
+            }
+            var isAbsPath = path[0] == "o:";
+            if (isAbsPath)
+            {
+                current = Program.Root;
+                current.Read_Directory();
+            }
+            for (int i = isAbsPath ? 1 : 0; i < path.Count; i++)
+            {
+                if (path[i] == "..")
+                {
+                    if (current.parent == null)
+                    {
+                        throw new Exception($"Invalid Name Dir {path[i]}");
+                    }
+                    else
+                    {
+                        current = current.parent;
+                        continue;
+                    }
+                }
+                var index = current.Search(path[i]);
+                if (index == -1)
+                {
+                    throw new Exception($"Invalid Name Dir {path[i]}");
+                }
+                else
+                {
+                    var dirEntry = current.directoryTable[index];
+                    current = new Directory(path[i], 1, 0, dirEntry.first_cluster, current);
+                }
+                current.Read_Directory();
+            }
+
+            return current;
+        }
     }
+
 }
-
-
-
-

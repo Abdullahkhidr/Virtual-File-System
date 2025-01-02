@@ -10,12 +10,10 @@ namespace OS_Project
 {
     internal class Program
     {
-
         public static Directory currentDirectory = new Directory();
+        public static Directory Root = new Directory("O:", 1, 0, 5, null);
         public static string path = "";
         internal static object current;
-
-        public static object DirectoryCurrent { get; internal set; }
 
         public static void Main(string[] args)
         {
@@ -27,6 +25,7 @@ namespace OS_Project
                 Console.Write(path + "\\> ");
                 string input = Console.ReadLine().ToLower().Trim();
                 string[] commandParts = input.Split(' ');
+                var pathParts = commandParts.Length < 2 ? new List<string>() : commandParts[1].Split('\\').ToList();
                 string command = commandParts.Length > 0 ? commandParts[0] : "";
 
 
@@ -45,13 +44,27 @@ namespace OS_Project
 
 
                     case "cls":
-                        Command.Cls();
+                        if (commandParts.Length > 1)
+                        {
+                            Console.WriteLine("Invalid syntax");
+                        }
+                        else
+                        {
+                            Command.Cls();
+                        }
                         break;
 
 
                     case "exit":
                     case "quit":
-                        Command.Exit();
+                        if (commandParts.Length > 1)
+                        {
+                            Console.WriteLine("Invalid syntax");
+                        }
+                        else
+                        {
+                            Command.Exit();
+                        }
                         break;
 
 
@@ -82,7 +95,7 @@ namespace OS_Project
 
 
                     case "dir":
-                        Command.Display_Directory();
+                        Command.Display_Directory(pathParts);
                         break;
 
 

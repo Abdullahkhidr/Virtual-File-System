@@ -16,7 +16,6 @@ namespace OS_Project
         public Directory() : base() { }
         public Directory(string n, byte bt, int sz, int fc, Directory pt) : base(n, bt, sz, fc)
         {
-
             parent = pt;
         }
 
@@ -92,7 +91,7 @@ namespace OS_Project
             MiniFat.WriteMiniFat();
         }
 
-      
+
         public void Read_Directory()
         {
             if (first_cluster != 0)
@@ -119,6 +118,7 @@ namespace OS_Project
                     byte[] temp = new byte[32];
                     for (int j = 0; j < 32; j++)
                     {
+                        size = i * 32 + j;
                         if (data[i * 32 + j] == (byte)'#')
                         {
                             flag = true;
@@ -135,7 +135,7 @@ namespace OS_Project
                 directoryTable = directory_table;
             }
         }
-    
+
         public int Search(string n)
         {
             string s;
@@ -169,7 +169,7 @@ namespace OS_Project
 
                 MiniFat.WriteMiniFat();
             }
-            
+
             int y = parent.Search(name);
             parent.directoryTable.RemoveAt(y);
             parent.Write_Directory();
@@ -177,18 +177,30 @@ namespace OS_Project
 
 
 
-        public void Update_Content (Directory_Entry d)
+        public void Update_Content(Directory_Entry d)
         {
             string file_name = new string(d.name);
             Read_Directory();
             int index = Search(file_name);
             if (index != -1)
-            { 
+            {
                 directoryTable.RemoveAt(index);
                 directoryTable.Insert(index, d);
             }
             Write_Directory();
         }
+        public string GetCurrentPath()
+        {
+            List<string> pathParts = new List<string>();
+            Directory current = this;
 
+            while (current != null)
+            {
+                pathParts.Insert(0, new string(current.name));
+                current = current.parent;
+            }
+
+            return string.Join("\\", pathParts);
+        }
     }
 }

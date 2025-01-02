@@ -20,7 +20,7 @@ namespace OS_Project
         public static void Initialize()
         {
 
-            Directory Root = new Directory("root",1, 0, 5, null);
+            Directory Root = new Directory("O:",1, 0, 5, null);
             Program.currentDirectory = Root;
             Program.path = new string(Root.name);
             if (!File.Exists(FileName))
