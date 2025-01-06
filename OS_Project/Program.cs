@@ -15,6 +15,22 @@ namespace OS_Project
         public static string path = "";
         internal static object current;
 
+        static List<string> splitPath(string path)
+        {
+            return path.Split('\\').ToList();
+        }
+        static List<List<string>> extractPaths(string paths)
+        {
+            var splittedPaths = paths.Split(' ').ToList();
+            var result = new List<List<string>>();
+            foreach (var path in splittedPaths)
+            {
+                if (path.Trim().Count() == 0) continue;
+                result.Add(splitPath(path));
+            }
+            return result;
+        }
+
         public static void Main(string[] args)
         {
             Virtual_Disk.Initialize();
@@ -22,11 +38,12 @@ namespace OS_Project
             while (true)
             {
 
-                Console.Write(path + "\\> ");
+                Console.Write(currentDirectory.GetCurrentPath() + "\\> ");
                 string input = Console.ReadLine().ToLower().Trim();
                 string[] commandParts = input.Split(' ');
-                var pathParts = commandParts.Length < 2 ? new List<string>() : commandParts[1].Split('\\').ToList();
                 string command = commandParts.Length > 0 ? commandParts[0] : "";
+
+                var paths = extractPaths(commandParts.Length > 1 ? string.Join("", commandParts.ToList().GetRange(1, commandParts.Length - 1)) : "");
 
 
                 switch (command)
@@ -69,10 +86,9 @@ namespace OS_Project
 
 
                     case "md":
-                        if (commandParts.Length == 2)
+                        if (paths.Count > 0)
                         {
-                            string directoryName = commandParts[1];
-                            Command.Make_Directory(directoryName);
+                            Command.Make_Directory(paths.First());
                         }
                         else
                         {
@@ -82,10 +98,9 @@ namespace OS_Project
 
 
                     case "rd":
-                        if (commandParts.Length == 2)
+                        if (paths.Count > 0)
                         {
-                            string directoryName = commandParts[1];
-                            Command.Remove_Directory(directoryName);
+                            Command.Remove_Directory(paths.First());
                         }
                         else
                         {
@@ -95,7 +110,7 @@ namespace OS_Project
 
 
                     case "dir":
-                        Command.Display_Directory(pathParts);
+                        Command.Display_Directory(paths.Count == 0 ? new List<string>() : paths.First());
                         break;
 
 
@@ -114,7 +129,7 @@ namespace OS_Project
                     case "type":
                         if (commandParts.Length == 2)
                         {
-                            Command.Type(commandParts[1]);
+                            Command.Type(paths.First());
                         }
                         else
                         {
@@ -124,14 +139,7 @@ namespace OS_Project
 
 
                     case "cd":
-                        if (commandParts.Length == 1)
-                        {
-                            Console.WriteLine(currentDirectory + "\n");
-                        }
-                        else if (commandParts.Length == 2)
-                        {
-                            Command.Change_Directory(commandParts[1]);
-                        }
+                        Command.Change_Directory(paths.Count == 0 ? new List<string>() : paths.First());
                         break;
 
 
