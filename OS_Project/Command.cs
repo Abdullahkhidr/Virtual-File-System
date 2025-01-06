@@ -23,9 +23,9 @@ namespace OS_Project
             { "del", "Deletes one or more files." },
             { "help", "Display help for all commands or a specific command" }, // TODO: write details when help with specific command
             { "md", "Creates a directory." }, // Done
-            { "rd", "Removes a directory." }, // TODO: handle if remove multi dirs
+            { "rd", "Removes a directory." }, // Done
             { "rename", "Renames a file or files." },
-            { "type", "Displays the contents of a text file." },
+            { "type", "Displays the contents of a text file." }, // Done
             { "import", "Import text file(s) from your computer." },
             { "export", "Export text file(s) to your computer." },  };
         public static void DisplayAllCommandsHelp()
@@ -58,67 +58,89 @@ namespace OS_Project
             Environment.Exit(0);
         }
 
-        public static void Make_Directory(List<string> pathParts)
+        public static void Make_Directory(List<List<string>> paths)
         {
-            try
+            foreach (var pathParts in paths)
             {
-                string name = pathParts.Last();
-                var parentPath = pathParts;
-                parentPath.RemoveAt(parentPath.Count - 1);
-                var parentDir = getDirectory(parentPath);
-                int index = parentDir.Search(name);
-                if (index != -1)
+                try
                 {
-                    throw new Exception($"The directory '{name}' is already exists.");
-                }
-                Directory_Entry newDir = new Directory_Entry(name, 1, 0, 0);
-                parentDir.directoryTable.Add(newDir);
-                parentDir.Write_Directory();
+                    string name = pathParts.Last();
+                    var parentPath = pathParts;
+                    parentPath.RemoveAt(parentPath.Count - 1);
+                    var parentDir = getDirectory(parentPath);
+                    int index = parentDir.Search(name);
+                    var path = $"{string.Join("\\", pathParts)}\\{name}";
 
-                if (parentDir.parent != null)
-                {
-                    parentDir.parent.Update_Content(parentDir.Get_Directory_Entry());
+                    if (index != -1)
+                    {
+                        throw new Exception($"The directory '{path}' is already exists.");
+                    }
+                    Directory_Entry newDir = new Directory_Entry(name, 1, 0, 0);
+                    parentDir.directoryTable.Add(newDir);
+                    parentDir.Write_Directory();
+
+                    if (parentDir.parent != null)
+                    {
+                        parentDir.parent.Update_Content(parentDir.Get_Directory_Entry());
+                    }
+                    Console.WriteLine($"Directory '{path}' created successfully.");
                 }
-                Console.WriteLine("Directory created successfully.");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
         }
 
 
 
-        public static void Remove_Directory(List<string> pathParts)
+        public static void Remove_Directory(List<List<string>> paths)
         {
-            try
+            foreach (var pathParts in paths)
             {
-                var name = pathParts.Last();
-                var parentPath = pathParts;
-                parentPath.RemoveAt(pathParts.Count - 1);
-                var parentDir = getDirectory(parentPath);
-                var index = parentDir.Search(name);
-                if (index == -1)
+                try
                 {
-                    throw new Exception("This Directory is not found");
-                }
-                Directory_Entry entry = parentDir.Get_Directory_Entry();
-                if (entry.attribute == 1)
-                {
-                    Directory newDir = new Directory(name, 1, 0, entry.first_cluster, parentDir);
-                    newDir.Delete_Directory(name);
-                    parentDir.Write_Directory();
-                    Console.WriteLine("Directory deleted successfully.");
-                }
-                else
-                {
-                    Console.WriteLine("Error: The specified name is not a directory.");
-                }
+                    var name = pathParts.Last();
+                    var parentPath = pathParts;
+                    parentPath.RemoveAt(pathParts.Count - 1);
+                    var parentDir = getDirectory(parentPath);
+                    var index = parentDir.Search(name);
+                    var path = $"{string.Join("\\", pathParts)}\\{name}";
+                    if (index == -1)
+                    {
+                        throw new Exception($"This Directory '{path}' is not found");
+                    }
+                    Directory_Entry entry = parentDir.Get_Directory_Entry();
+                    if (entry.attribute == 1)
+                    {
+                        pathParts.Add(name);
+                        Directory newDir = getDirectory(pathParts);
 
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
+                        if (newDir.size > 0)
+                        {
+                            throw new Exception($"Cannot remove this directory '{path}' is not empty");
+                        }
+                        var answer = "";
+                        do
+                        {
+                            Console.Write($"Are you sure to delete '{path}' [Y/N]?");
+                            answer = Console.ReadLine();
+                        } while (answer.ToLower() != "y" && answer.ToLower() != "n");
+                        if (answer.ToLower() == "n") continue;
+                        newDir.Delete_Directory(name);
+                        parentDir.Write_Directory();
+                        Console.WriteLine($"Directory '{path}' deleted successfully.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: The specified name is not a directory.");
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
         }
 
@@ -181,33 +203,38 @@ namespace OS_Project
             }
         }
 
-        public static void Type(List<string> pathParts)
+        public static void Type(List<List<string>> paths)
         {
-            try
+            foreach (var pathParts in paths)
             {
-                var name = pathParts.Last();
-                var parentPath = pathParts;
-                parentPath.RemoveAt(pathParts.Count - 1);
-                var parentDir = getDirectory(parentPath);
-
-                int index = parentDir.Search(name);
-                if (index != -1)
+                try
                 {
-                    int fc = parentDir.directoryTable[index].first_cluster;
-                    int sz = parentDir.directoryTable[index].size;
-                    File_Entry f = new File_Entry(name, 0, sz, fc, "", parentDir);
-                    f.Read_File();
+                    var name = pathParts.Last();
+                    var parentPath = pathParts;
+                    parentPath.RemoveAt(pathParts.Count - 1);
+                    var parentDir = getDirectory(parentPath);
+                    Console.WriteLine("---------");
+                    Console.WriteLine(string.Join("\\", pathParts) + "\\" + name);
+                    Console.WriteLine("=========");
+                    int index = parentDir.Search(name);
+                    if (index != -1)
+                    {
+                        int fc = parentDir.directoryTable[index].first_cluster;
+                        int sz = parentDir.directoryTable[index].size;
+                        File_Entry f = new File_Entry(name, 0, sz, fc, "", parentDir);
+                        f.Read_File();
 
-                    Console.WriteLine(f.content);
+                        Console.WriteLine(f.content);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed: There is no a file named '{name}'");
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    Console.WriteLine($"Failed: There is no a file named '{name}'");
+                    Console.WriteLine(e.Message);
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
             }
 
         }
@@ -373,7 +400,7 @@ namespace OS_Project
             {
                 return current;
             }
-            var isAbsPath = path[0] == "o:";
+            var isAbsPath = path[0] == "O:";
             if (isAbsPath)
             {
                 current = Program.Root;

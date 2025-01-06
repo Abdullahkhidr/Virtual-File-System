@@ -37,14 +37,12 @@ namespace OS_Project
 
             while (true)
             {
-
                 Console.Write(currentDirectory.GetCurrentPath() + "\\> ");
-                string input = Console.ReadLine().ToLower().Trim();
+                string input = Console.ReadLine().Trim();
                 string[] commandParts = input.Split(' ');
                 string command = commandParts.Length > 0 ? commandParts[0] : "";
 
-                var paths = extractPaths(commandParts.Length > 1 ? string.Join("", commandParts.ToList().GetRange(1, commandParts.Length - 1)) : "");
-
+                var paths = extractPaths(commandParts.Length > 1 ? string.Join(" ", commandParts.ToList().GetRange(1, commandParts.Length - 1)) : "");
 
                 switch (command)
                 {
@@ -84,11 +82,11 @@ namespace OS_Project
                         }
                         break;
 
-
+                    case "mkdir":
                     case "md":
                         if (paths.Count > 0)
                         {
-                            Command.Make_Directory(paths.First());
+                            Command.Make_Directory(paths);
                         }
                         else
                         {
@@ -96,11 +94,11 @@ namespace OS_Project
                         }
                         break;
 
-
+                    case "rm":
                     case "rd":
                         if (paths.Count > 0)
                         {
-                            Command.Remove_Directory(paths.First());
+                            Command.Remove_Directory(paths);
                         }
                         else
                         {
@@ -108,7 +106,7 @@ namespace OS_Project
                         }
                         break;
 
-
+                    case "ls":
                     case "dir":
                         Command.Display_Directory(paths.Count == 0 ? new List<string>() : paths.First());
                         break;
@@ -127,9 +125,9 @@ namespace OS_Project
 
 
                     case "type":
-                        if (commandParts.Length == 2)
+                        if (paths.Count > 0)
                         {
-                            Command.Type(paths.First());
+                            Command.Type(paths);
                         }
                         else
                         {
