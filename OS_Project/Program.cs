@@ -115,7 +115,7 @@ namespace OS_Project
                     case "rename":
                         if (commandParts.Length == 3)
                         {
-                            Command.Rename(commandParts[1], commandParts[2]);
+                            Command.Rename(splitPath(commandParts[1]), commandParts[2]);
                         }
                         else
                         {

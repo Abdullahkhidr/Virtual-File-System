@@ -22,6 +22,7 @@ namespace OS_Project
         public Directory_Entry(string n, byte attr, int sz, int fc)
         {
             attribute = attr;
+            
             if (attribute == 0)
             {
                 if (n.Length > 11)
@@ -37,10 +38,26 @@ namespace OS_Project
             {
                 name = n.Substring(0, Math.Min(11, n.Length)).ToCharArray();
             }
-
+            name = CleanName(new string(name)).ToArray();
             size = sz;
 
             first_cluster = fc;
+        }
+
+        public static string CleanName(string name)
+        {
+            string legalCharaters = "abcdefghijklmnopqrstuvwxyz0123456789.";
+            if (name != "O:")
+            {
+                foreach (char c in name)
+                {
+                    if (!legalCharaters.Contains(c.ToString().ToLower()))
+                    {
+                        throw new ArgumentException("Invalid File Name");
+                    }
+                }
+            }
+            return name;
         }
 
         public byte[] Convert_Directory_Entry()

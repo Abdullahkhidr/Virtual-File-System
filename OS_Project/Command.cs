@@ -15,19 +15,20 @@ namespace OS_Project
     internal class Command
     {
         static Dictionary<string, string> commands = new Dictionary<string, string> {
-            { "cd", "Displays the name of or changes the current directory" },// Done
-            { "cls", "Clear the console screen" },// Done
-            { "dir", "Displays a list of files and subdirectories in a directory." },// TODO: handle when write file path
-            { "exit", "Quits the CMD.EXE program (command interpreter)." }, // Done
-            { "copy", "Copies one or more files to another location." },
-            { "del", "Deletes one or more files." },
-            { "help", "Display help for all commands or a specific command" }, // TODO: write details when help with specific command
-            { "md", "Creates a directory." }, // Done
-            { "rd", "Removes a directory." }, // Done
-            { "rename", "Renames a file or files." },
-            { "type", "Displays the contents of a text file." }, // Done
-            { "import", "Import text file(s) from your computer." },
-            { "export", "Export text file(s) to your computer." },  };
+            { "cd", "Displays the name of or changes the current directory.\nUsage:\n  cd [directory]\n  - If no directory is specified, it displays the current directory.\n  - Use '..' to move up one directory level." }, // Done
+            { "cls", "Clears the console screen.\nUsage:\n  cls\n  - This command clears all text from the console window." }, // Done
+            { "dir", "Displays a list of files and subdirectories in a directory.\nUsage:\n  dir [directory]\n  - If no directory is specified, it lists the contents of the current directory.\n  - Use a file path to list the contents of a specific directory." }, // TODO: handle when write file path
+            { "exit", "Quits the CMD.EXE program (command interpreter).\nUsage:\n  exit\n  - This command closes the console window or terminates the current session." }, // Done
+            { "copy", "Copies one or more files to another location.\nUsage:\n  copy [source] [destination]\n  - [source]: The file(s) to copy.\n  - [destination]: The location where the file(s) will be copied.\n  - Example: copy file.txt C:\\Backup" },
+            { "del", "Deletes one or more files.\nUsage:\n  del [file]\n  - [file]: The file(s) to delete.\n  - Example: del file.txt\n  - Use caution as deleted files cannot be recovered." },
+            { "help", "Displays help for all commands or a specific command.\nUsage:\n  help [command]\n  - If no command is specified, it lists all available commands.\n  - Example: help cd (provides details about the 'cd' command)." }, // TODO: write details when help with specific command
+            { "md", "Creates a directory.\nUsage:\n  md [directory_name]\n  - [directory_name]: The name of the directory to create.\n  - Example: md NewFolder" }, // Done
+            { "rd", "Removes a directory.\nUsage:\n  rd [directory_name]\n  - [directory_name]: The name of the directory to remove.\n  - Example: rd OldFolder\n  - Note: The directory must be empty before it can be removed." }, // Done
+            { "rename", "Renames a file or files.\nUsage:\n  rename [old_name] [new_name]\n  - [old_name]: The current name of the file.\n  - [new_name]: The new name for the file.\n  - Example: rename file1.txt file2.txt" }, // Done
+            { "type", "Displays the contents of a text file.\nUsage:\n  type [file]\n  - [file]: The text file to display.\n  - Example: type file.txt" }, // Done
+            { "import", "Imports text file(s) from your computer.\nUsage:\n  import [file_path]\n  - [file_path]: The path of the file(s) to import.\n  - Example: import C:\\Documents\\file.txt" },
+            { "export", "Exports text file(s) to your computer.\nUsage:\n  export [file_path]\n  - [file_path]: The path where the file(s) will be exported.\n  - Example: export C:\\Backup\\file.txt" },
+        };
         public static void DisplayAllCommandsHelp()
         {
             foreach (var command in commands)
@@ -177,29 +178,46 @@ namespace OS_Project
         }
 
 
-        public static void Rename(string oldName, string newName)
+        public static void Rename(List<string> filePath, string newName)
         {
-            int index_oldName = Program.currentDirectory.Search(oldName);
-            int index_newName = Program.currentDirectory.Search(newName);
-            if (index_oldName != -1)
+            try
             {
-                if (index_newName == -1)
+                Directory_Entry.CleanName(newName);
+                var oldName = filePath.Last();
+
+                var parentPath = filePath;
+                parentPath.RemoveAt(filePath.Count - 1);
+                var parent = getDirectory(parentPath);
+                int index_oldName = parent.Search(oldName);
+                int index_newName = parent.Search(newName);
+                if (index_oldName != -1)
                 {
-                    Directory_Entry entry = Program.currentDirectory.directoryTable[index_oldName];
+                    if (parent.directoryTable[index_oldName].attribute == 1)
+                    {
+                        throw new Exception("Cannot rename a directory");
+                    }
+                    if (index_newName == -1)
+                    {
+                        Directory_Entry entry = parent.directoryTable[index_oldName];
 
-                    entry.name = newName.ToCharArray();
-                    Program.currentDirectory.Write_Directory();
-                    Console.WriteLine($"Directory '{oldName}' renamed to '{newName}' successfully.");
+                        entry.name = newName.ToCharArray();
+                        parent.Write_Directory();
+                        Console.WriteLine($"Directory '{oldName}' renamed to '{newName}' successfully.");
 
+                    }
+                    else
+                    {
+                        Console.WriteLine($"'{newName}' is duplicated file name");
+                    }
                 }
                 else
                 {
-                    Console.WriteLine($"'{newName}' is the same as the old name.");
+                    Console.WriteLine("The specified name is not a file.");
                 }
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("The specified name is not a file.");
+                Console.WriteLine(e.Message);
             }
         }
 
