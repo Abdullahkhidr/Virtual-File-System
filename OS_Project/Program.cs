@@ -157,10 +157,9 @@ namespace OS_Project
                         break;
 
                     case "del":
-                        if (commandParts.Length == 2)
+                        if (commandParts.Length >= 2)
                         {
-                            string fileName = commandParts[1];
-                            Command.Delete_File(fileName);
+                            Command.Delete_File(paths);
                         }
                         else
                         {

@@ -15,19 +15,32 @@ namespace OS_Project
     internal class Command
     {
         static Dictionary<string, string> commands = new Dictionary<string, string> {
-            { "cd", "Displays the name of or changes the current directory.\nUsage:\n  cd [directory]\n  - If no directory is specified, it displays the current directory.\n  - Use '..' to move up one directory level." }, // Done
-            { "cls", "Clears the console screen.\nUsage:\n  cls\n  - This command clears all text from the console window." }, // Done
-            { "dir", "Displays a list of files and subdirectories in a directory.\nUsage:\n  dir [directory]\n  - If no directory is specified, it lists the contents of the current directory.\n  - Use a file path to list the contents of a specific directory." }, // TODO: handle when write file path
-            { "exit", "Quits the CMD.EXE program (command interpreter).\nUsage:\n  exit\n  - This command closes the console window or terminates the current session." }, // Done
+            { "cd", "Displays the name of or changes the current directory.\nUsage:\n  cd [directory]\n  - If no directory is specified, it displays the current directory.\n  - Use '..' to move up one directory level." }, 
+            // Done
+            { "cls", "Clears the console screen.\nUsage:\n  cls\n  - This command clears all text from the console window." }, 
+            // Done
+            { "dir", "Displays a list of files and subdirectories in a directory.\nUsage:\n  dir [directory]\n  - If no directory is specified, it lists the contents of the current directory.\n  - Use a file path to list the contents of a specific directory." }, 
+            // Done
+            { "exit", "Quits the CMD.EXE program (command interpreter).\nUsage:\n  exit\n  - This command closes the console window or terminates the current session." },
+            // Done
             { "copy", "Copies one or more files to another location.\nUsage:\n  copy [source] [destination]\n  - [source]: The file(s) to copy.\n  - [destination]: The location where the file(s) will be copied.\n  - Example: copy file.txt C:\\Backup" },
-            { "del", "Deletes one or more files.\nUsage:\n  del [file]\n  - [file]: The file(s) to delete.\n  - Example: del file.txt\n  - Use caution as deleted files cannot be recovered." },
-            { "help", "Displays help for all commands or a specific command.\nUsage:\n  help [command]\n  - If no command is specified, it lists all available commands.\n  - Example: help cd (provides details about the 'cd' command)." }, // TODO: write details when help with specific command
-            { "md", "Creates a directory.\nUsage:\n  md [directory_name]\n  - [directory_name]: The name of the directory to create.\n  - Example: md NewFolder" }, // Done
-            { "rd", "Removes a directory.\nUsage:\n  rd [directory_name]\n  - [directory_name]: The name of the directory to remove.\n  - Example: rd OldFolder\n  - Note: The directory must be empty before it can be removed." }, // Done
-            { "rename", "Renames a file or files.\nUsage:\n  rename [old_name] [new_name]\n  - [old_name]: The current name of the file.\n  - [new_name]: The new name for the file.\n  - Example: rename file1.txt file2.txt" }, // Done
-            { "type", "Displays the contents of a text file.\nUsage:\n  type [file]\n  - [file]: The text file to display.\n  - Example: type file.txt" }, // Done
-            { "import", "Imports text file(s) from your computer.\nUsage:\n  import [file_path]\n  - [file_path]: The path of the file(s) to import.\n  - Example: import C:\\Documents\\file.txt" },
+            // 
+            { "del", "Deletes one or more files.\nUsage:\n  del [file]\n  - [file]: The file(s) to delete.\n  - Example: del file.txt\n  - Use caution as deleted files cannot be recovered." }, 
+            // Done
+            { "help", "Displays help for all commands or a specific command.\nUsage:\n  help [command]\n  - If no command is specified, it lists all available commands.\n  - Example: help cd (provides details about the 'cd' command)." }, 
+            // Done
+            { "md", "Creates a directory.\nUsage:\n  md [directory_name]\n  - [directory_name]: The name of the directory to create.\n  - Example: md NewFolder" }, 
+            // Done
+            { "rd", "Removes a directory.\nUsage:\n  rd [directory_name]\n  - [directory_name]: The name of the directory to remove.\n  - Example: rd OldFolder\n  - Note: The directory must be empty before it can be removed." }, 
+            // Done
+            { "rename", "Renames a file or files.\nUsage:\n  rename [old_name] [new_name]\n  - [old_name]: The current name of the file.\n  - [new_name]: The new name for the file.\n  - Example: rename file1.txt file2.txt" }, 
+            // Done
+            { "type", "Displays the contents of a text file.\nUsage:\n  type [file]\n  - [file]: The text file to display.\n  - Example: type file.txt" }, 
+            // Done
+            { "import", "Imports text file(s) from your computer.\nUsage:\n  import [file_path]\n  - [file_path]: The path of the file(s) to import.\n  - Example: import C:\\Documents\\file.txt" }, 
+            // 
             { "export", "Exports text file(s) to your computer.\nUsage:\n  export [file_path]\n  - [file_path]: The path where the file(s) will be exported.\n  - Example: export C:\\Backup\\file.txt" },
+            //
         };
         public static void DisplayAllCommandsHelp()
         {
@@ -257,25 +270,52 @@ namespace OS_Project
 
         }
 
-        public static void Delete_File(string name)
+        public static void Delete_File(List<List<string>> paths)
         {
-
-            int index = Program.currentDirectory.Search(name);
-            if (index != -1)
+            foreach (var pathParts in paths)
             {
-                int fc = Program.currentDirectory.directoryTable[index].first_cluster;
-                int sz = Program.currentDirectory.directoryTable[index].size;
-                File_Entry f = new File_Entry(name, 0, sz, fc, "", Program.currentDirectory);
-                f.Delete_File(name);
-                Console.WriteLine("File deleted successfully.");
+                try
+                {
+                    var name = pathParts.Last();
+                    var parentPath = pathParts;
+                    parentPath.RemoveAt(pathParts.Count - 1);
+                    var parentDir = getDirectory(parentPath);
+                    var index = parentDir.Search(name);
+                    var path = $"{string.Join("\\", pathParts)}\\{name}";
+                    if (index == -1)
+                    {
+                        throw new Exception($"This Directory '{path}' is not found");
+                    }
+                    Directory_Entry entry = parentDir.Get_Directory_Entry();
+
+                    pathParts.Add(name);
+
+                    var answer = "";
+                    do
+                    {
+                        Console.Write($"Are you sure to delete '{path}' [Y/N]?");
+                        answer = Console.ReadLine();
+                    } while (answer.ToLower() != "y" && answer.ToLower() != "n");
+                    if (answer.ToLower() == "n") continue;
+                    bool isDir = parentDir.directoryTable[index].attribute == 1;
+                    if (isDir)
+                    {
+                        Directory newDir = getDirectory(pathParts);
+                        newDir.Delete_Directory(name);
+                    }
+                    else
+                    {
+                        parentDir.directoryTable.RemoveAt(index);
+                    }
+                    parentDir.Write_Directory();
+                    Console.WriteLine($"{(isDir? "Directory": "File")} '{path}' deleted successfully.");
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
-
-            else
-            {
-                Console.WriteLine("Error: The specified name is not a file.");
-            }
-
-
         }
 
 
