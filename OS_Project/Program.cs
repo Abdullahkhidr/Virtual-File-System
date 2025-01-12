@@ -169,13 +169,13 @@ namespace OS_Project
 
 
                     case "import":
-                        if (commandParts.Length == 2)
+                        if (commandParts.Length >= 2)
                         {
-                            Command.Import(commandParts[1]);
+                            Command.Import(commandParts[1], commandParts.Length > 2 ? splitPath(commandParts[2]) : new List<string>());
                         }
                         else
                         {
-                            Console.WriteLine("Usage: type <path>");
+                            Console.WriteLine("Usage: type <path> [destination]");
                         }
                         break;
 

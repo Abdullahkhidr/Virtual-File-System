@@ -38,9 +38,9 @@ namespace OS_Project
             { "type", "Displays the contents of a text file.\nUsage:\n  type [file]\n  - [file]: The text file to display.\n  - Example: type file.txt" }, 
             // Done
             { "import", "Imports text file(s) from your computer.\nUsage:\n  import [file_path]\n  - [file_path]: The path of the file(s) to import.\n  - Example: import C:\\Documents\\file.txt" }, 
-            // 
+            // TODO: handle dir as a source
             { "export", "Exports text file(s) to your computer.\nUsage:\n  export [file_path]\n  - [file_path]: The path where the file(s) will be exported.\n  - Example: export C:\\Backup\\file.txt" },
-            //
+            // 
         };
         public static void DisplayAllCommandsHelp()
         {
@@ -308,7 +308,7 @@ namespace OS_Project
                         parentDir.directoryTable.RemoveAt(index);
                     }
                     parentDir.Write_Directory();
-                    Console.WriteLine($"{(isDir? "Directory": "File")} '{path}' deleted successfully.");
+                    Console.WriteLine($"{(isDir ? "Directory" : "File")} '{path}' deleted successfully.");
 
                 }
                 catch (Exception e)
@@ -342,37 +342,55 @@ namespace OS_Project
 
 
 
-        public static void Import(string path)
+        public static void Import(string path, List<string> des)
         {
-            if (System.IO.File.Exists(path))
+            try
             {
-                string fileName = path.Split('\\').Last();
-                string fileContent = System.IO.File.ReadAllText(path);
-                int size = fileContent.Length;
-                int index = Program.currentDirectory.Search(fileName);
-                int first_cluster = 0;
 
-                if (index == -1)
+                if (System.IO.File.Exists(path))
                 {
-                    File_Entry f = new File_Entry(fileName, 0, size, first_cluster, fileContent, Program.currentDirectory);
+                    Directory parentDir = Program.currentDirectory;
+                    string fileName = path.Split('\\').Last();
+                    if (des.Count > 0)
+                    {
+                        var parentPath = des;
+                        if (des.Last().Contains('.'))
+                        {
+                            fileName = des.Last();
+                            parentPath.RemoveAt(des.Count - 1);
+                        }
+                        parentDir = getDirectory(parentPath);
+                    }
+
+                    string fileContent = System.IO.File.ReadAllText(path);
+                    int size = fileContent.Length;
+                    int index = parentDir.Search(fileName);
+                    int first_cluster = 0;
+
+                    File_Entry f = new File_Entry(fileName, 0, size, first_cluster, fileContent, parentDir);
                     f.Write_File();
                     Directory_Entry d = new Directory_Entry(fileName, 0, size, f.first_cluster);
-                    Program.currentDirectory.directoryTable.Add(d);
-                    Program.currentDirectory.Write_Directory();
-
-                    if (Program.currentDirectory.parent != null)
+                    if (index != -1)
                     {
-                        Program.currentDirectory.parent.Update_Content(Program.currentDirectory.Get_Directory_Entry());
+                        parentDir.directoryTable.RemoveAt(index);
                     }
+                    parentDir.directoryTable.Add(d);
+                    parentDir.Write_Directory();
+
+                    if (parentDir.parent != null)
+                    {
+                        parentDir.parent.Update_Content(parentDir.Get_Directory_Entry());
+                    }
+
                 }
                 else
                 {
-                    Console.WriteLine("Error: File with the same name already exists.");
+                    Console.WriteLine("Error: The specified name is not a file.");
                 }
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("Error: The specified name is not a file.");
+                Console.WriteLine(e.Message);
             }
 
         }
