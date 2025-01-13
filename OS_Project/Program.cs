@@ -181,9 +181,9 @@ namespace OS_Project
 
 
                     case "export":
-                        if (commandParts.Length == 3)
+                        if (commandParts.Length > 1)
                         {
-                            Command.Export(commandParts[1], commandParts[2]);
+                            Command.Export(paths[0], ((commandParts.Length > 2) ? commandParts[2] : ""));
                         }
                         else
                         {

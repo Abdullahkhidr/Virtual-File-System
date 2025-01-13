@@ -40,7 +40,7 @@ namespace OS_Project
             { "import", "Imports text file(s) from your computer.\nUsage:\n  import [file_path]\n  - [file_path]: The path of the file(s) to import.\n  - Example: import C:\\Documents\\file.txt" }, 
             // TODO: handle dir as a source
             { "export", "Exports text file(s) to your computer.\nUsage:\n  export [file_path]\n  - [file_path]: The path where the file(s) will be exported.\n  - Example: export C:\\Backup\\file.txt" },
-            // 
+            // Done
         };
         public static void DisplayAllCommandsHelp()
         {
@@ -396,33 +396,39 @@ namespace OS_Project
         }
 
 
-        public static void Export(string name, string dest)
+        public static void Export(List<string> pathParts, string des)
         {
-
-            int index = Program.currentDirectory.Search(name);
-            if (index != -1)
+            try
             {
-
-                if (System.IO.Directory.Exists(dest))
+                var name = pathParts.Last();
+                var parentPath = pathParts;
+                parentPath.RemoveAt(pathParts.Count - 1);
+                var parentDir = getDirectory(parentPath);
+                int index = parentDir.Search(name);
+                if (des.Contains('.'))
                 {
-                    int fc = Program.currentDirectory.directoryTable[index].first_cluster;
-                    int sz = Program.currentDirectory.directoryTable[index].size;
-                    File_Entry f = new File_Entry(name, 0, sz, fc, "", Program.currentDirectory);
+                    name = des.Split('\\').Last();
+                    des = des.Substring(0, des.LastIndexOf('\\')+1);
+                }
+                if (index != -1)
+                {
+                    int fc = parentDir.directoryTable[index].first_cluster;
+                    int sz = parentDir.directoryTable[index].size;
+                    File_Entry f = new File_Entry(name, 0, sz, fc, "", parentDir);
                     f.Read_File();
-                    using (StreamWriter sw = new StreamWriter(dest + '\\' + name))
+                    using (StreamWriter sw = new StreamWriter(des + name))
                     {
                         sw.WriteLine(f.content);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("File not found at the specified path.");
+                    Console.WriteLine("Error: The specified name is not a file.");
                 }
-
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("Error: The specified name is not a file.");
+                Console.WriteLine(e.Message);
             }
         }
 

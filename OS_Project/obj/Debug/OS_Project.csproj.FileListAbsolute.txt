@@ -19,3 +19,10 @@ C:\Users\abdul\Desktop\Virtual-File-System\OS_Project\obj\Debug\OS_Project.cspro
 C:\Users\abdul\Desktop\Virtual-File-System\OS_Project\obj\Debug\OS_Project.csproj.CoreCompileInputs.cache
 C:\Users\abdul\Desktop\Virtual-File-System\OS_Project\obj\Debug\OS_Project.exe
 C:\Users\abdul\Desktop\Virtual-File-System\OS_Project\obj\Debug\OS_Project.pdb
+C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\bin\Debug\OS_Project.exe.config
+C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\bin\Debug\OS_Project.exe
+C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\bin\Debug\OS_Project.pdb
+C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\obj\Debug\OS_Project.csproj.AssemblyReference.cache
+C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\obj\Debug\OS_Project.csproj.CoreCompileInputs.cache
+C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\obj\Debug\OS_Project.exe
+C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\obj\Debug\OS_Project.pdb
