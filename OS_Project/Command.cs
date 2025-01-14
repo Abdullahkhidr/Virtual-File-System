@@ -408,7 +408,7 @@ namespace OS_Project
                 if (des.Contains('.'))
                 {
                     name = des.Split('\\').Last();
-                    des = des.Substring(0, des.LastIndexOf('\\')+1);
+                    des = des.Substring(0, des.LastIndexOf('\\') + 1);
                 }
                 if (index != -1)
                 {
@@ -433,44 +433,41 @@ namespace OS_Project
         }
 
 
-        public static void Copy(string src, string dest)
+        public static void Copy(List<string> src, List<string> dest)
         {
-            string[] pathParts = dest.Split('\\');
-            int index_src = Program.currentDirectory.Search(src);
-            int index_dest = Program.currentDirectory.Search(pathParts[0]);
-            if (index_src == -1)
+            try
             {
-                Console.WriteLine($"Error: Source file '{src}' not found.");
-                return;
-            }
-
-            if (index_dest == -1)
-            {
-                Console.WriteLine($"Error: Destination directory '{dest}' not found.");
-                return;
-            }
-            if (index_src != -1)
-            {
-                int fc = Program.currentDirectory.directoryTable[index_dest].first_cluster;
-                Directory d = new Directory(dest, 1, 0, fc, Program.currentDirectory);
-                d.Read_Directory();
-                Directory_Entry de = Program.currentDirectory.directoryTable[index_src];
-                int indx3 = d.Search(src);
-                if (indx3 != -1)
+                var name_source = src.Last();
+                var name_des = name_source;
+                src.RemoveAt(src.Count - 1);
+                if (dest.Count > 0 && dest.Last().Contains('.'))
                 {
-                    Console.WriteLine($"Error: File '{src}' already exists in '{dest}'.");
+                    name_des = dest.Last();
+                    dest.RemoveAt(dest.Count - 1);
+                }
+                var parentSrc = getDirectory(src);
+                var parentDes = getDirectory(dest);
+                int index_src = parentSrc.Search(name_source);
+                int index_dest = parentDes.Search(name_des);
+                if (index_src == -1)
+                {
+                    Console.WriteLine($"Error: Source file '{src}' not found.");
                     return;
                 }
-                d.directoryTable.Add(de);
-                d.Write_Directory();
-                if (d.parent != null)
+
+                if (index_dest != -1)
                 {
-                    d.parent.Update_Content(d.Get_Directory_Entry());
+                    parentDes.directoryTable.RemoveAt(index_dest);
                 }
+
+                var sourceFile = parentSrc.directoryTable[index_src];
+
+                parentDes.directoryTable.Add(new Directory_Entry(name_des, sourceFile.attribute, sourceFile.size, sourceFile.first_cluster));
+                parentDes.Write_Directory();
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("Error: Destination directory not found.");
+                Console.WriteLine(e.Message);
             }
         }
 

@@ -143,16 +143,13 @@ namespace OS_Project
 
 
                     case "copy":
-                        if (commandParts.Length == 3)
+                        if (commandParts.Length >= 2)
                         {
-                            string src = commandParts[1];
-                            string dest = commandParts[2];
-
-                            Command.Copy(src, dest);
+                            Command.Copy(paths[0], paths.Count>1? paths[1]: new List<string>());
                         }
                         else
                         {
-                            Console.WriteLine("Usage: copy <source_file> <destination_file>");
+                            Console.WriteLine("Usage: copy <source_file> [destination_file]");
                         }
                         break;
 
