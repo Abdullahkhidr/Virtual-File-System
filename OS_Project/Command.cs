@@ -24,7 +24,7 @@ namespace OS_Project
             { "exit", "Quits the CMD.EXE program (command interpreter).\nUsage:\n  exit\n  - This command closes the console window or terminates the current session." },
             // Done
             { "copy", "Copies one or more files to another location.\nUsage:\n  copy [source] [destination]\n  - [source]: The file(s) to copy.\n  - [destination]: The location where the file(s) will be copied.\n  - Example: copy file.txt C:\\Backup" },
-            // 
+            // Done
             { "del", "Deletes one or more files.\nUsage:\n  del [file]\n  - [file]: The file(s) to delete.\n  - Example: del file.txt\n  - Use caution as deleted files cannot be recovered." }, 
             // Done
             { "help", "Displays help for all commands or a specific command.\nUsage:\n  help [command]\n  - If no command is specified, it lists all available commands.\n  - Example: help cd (provides details about the 'cd' command)." }, 
@@ -38,7 +38,7 @@ namespace OS_Project
             { "type", "Displays the contents of a text file.\nUsage:\n  type [file]\n  - [file]: The text file to display.\n  - Example: type file.txt" }, 
             // Done
             { "import", "Imports text file(s) from your computer.\nUsage:\n  import [file_path]\n  - [file_path]: The path of the file(s) to import.\n  - Example: import C:\\Documents\\file.txt" }, 
-            // TODO: handle dir as a source
+            // Done
             { "export", "Exports text file(s) to your computer.\nUsage:\n  export [file_path]\n  - [file_path]: The path where the file(s) will be exported.\n  - Example: export C:\\Backup\\file.txt" },
             // Done
         };
@@ -372,10 +372,18 @@ namespace OS_Project
                     Directory_Entry d = new Directory_Entry(fileName, 0, size, f.first_cluster);
                     if (index != -1)
                     {
+                        var answer = "";
+                        do
+                        {
+                            Console.Write($"Are you sure to overwrite '{path}' [Y/N]?");
+                            answer = Console.ReadLine();
+                        } while (answer.ToLower() != "y" && answer.ToLower() != "n");
+                        if (answer.ToLower() == "n") return;
                         parentDir.directoryTable.RemoveAt(index);
                     }
                     parentDir.directoryTable.Add(d);
                     parentDir.Write_Directory();
+
 
                     if (parentDir.parent != null)
                     {
@@ -451,13 +459,14 @@ namespace OS_Project
                 int index_dest = parentDes.Search(name_des);
                 if (index_src == -1)
                 {
-                    Console.WriteLine($"Error: Source file '{src}' not found.");
+                    Console.WriteLine($"Error: Source file '{name_source}' not found.");
                     return;
                 }
 
                 if (index_dest != -1)
                 {
-                    parentDes.directoryTable.RemoveAt(index_dest);
+                    Console.WriteLine($"The file cannot be copied onto itself.");
+                    return;
                 }
 
                 var sourceFile = parentSrc.directoryTable[index_src];

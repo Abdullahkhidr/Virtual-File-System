@@ -26,3 +26,11 @@ C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\obj\Debug\OS_Project.
 C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\obj\Debug\OS_Project.csproj.CoreCompileInputs.cache
 C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\obj\Debug\OS_Project.exe
 C:\Users\amymm\Desktop\Virtual-File-System-main\OS_Project\obj\Debug\OS_Project.pdb
+D:\Virtual-File-System\OS_Project\bin\Debug\OS_Project.exe.config
+D:\Virtual-File-System\OS_Project\bin\Debug\OS_Project.exe
+D:\Virtual-File-System\OS_Project\bin\Debug\OS_Project.pdb
+D:\Virtual-File-System\OS_Project\obj\Debug\OS_Project.csproj.AssemblyReference.cache
+D:\Virtual-File-System\OS_Project\obj\Debug\OS_Project.csproj.SuggestedBindingRedirects.cache
+D:\Virtual-File-System\OS_Project\obj\Debug\OS_Project.csproj.CoreCompileInputs.cache
+D:\Virtual-File-System\OS_Project\obj\Debug\OS_Project.exe
+D:\Virtual-File-System\OS_Project\obj\Debug\OS_Project.pdb
