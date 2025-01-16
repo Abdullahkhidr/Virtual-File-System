@@ -1,1 +1,0 @@
-Hi, Aalaa Welcome to the Command Line Interpreter! 

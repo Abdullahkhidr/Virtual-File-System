@@ -26,7 +26,7 @@ namespace OS_Project
             int totalBlocks = (int)Math.Ceiling(content.Length / 1024.0);
             int fullBlocks = content.Length / 1024;
             int remainder = content.Length % 1024;
-
+            
 
             int fc;
             if (first_cluster != 0)

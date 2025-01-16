@@ -10,12 +10,12 @@ namespace OS_Project
 {
     internal class Virtual_Disk
     {
-        public const string FileName = "Disk.txt";
-        public const int BlockSize = 1024;
-        public const int TotalBlocks = 1024 * 1024;
-        private const byte SuperBlock = (byte)'0';
+        public const string fileName = "Disk.txt";
+        public const int blockSize = 1024;
+        public const int totalBlocks = 1024 * 1024;
+        private const byte superBlock = (byte)'0';
         private const byte FAT = (byte)'*';
-        private const byte FreeBlock = (byte)'#';
+        private const byte freeBlock = (byte)'#';
 
         public static void Initialize()
         {
@@ -23,24 +23,24 @@ namespace OS_Project
             Directory Root = new Directory("O:",1, 0, 5, null);
             Program.currentDirectory = Root;
             Program.path = new string(Root.name);
-            if (!File.Exists(FileName))
+            if (!File.Exists(fileName))
             {
-                using (FileStream disk = new FileStream(FileName, FileMode.Create, FileAccess.ReadWrite))
+                using (FileStream disk = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
                 {
-                    for (int i = 0; i < BlockSize; i++)
+                    for (int i = 0; i < blockSize; i++)
                     {
-                        disk.WriteByte(SuperBlock);
+                        disk.WriteByte(superBlock);
                     }
                    
-                    for (int j = 0; j < BlockSize * 4; j++)
+                    for (int j = 0; j < blockSize * 4; j++)
                     {
                         disk.WriteByte(FAT);
                     }
 
-                    for (int i = 0; i < (BlockSize - 5) * BlockSize; i++)
+                    for (int i = 0; i < (blockSize - 5) * blockSize; i++)
                     {
                       
-                        disk.WriteByte(FreeBlock);
+                        disk.WriteByte(freeBlock);
                         
                     }
                 }
@@ -59,7 +59,7 @@ namespace OS_Project
 
         public static void Write_Block(byte[] data, int index)
         {
-            using (FileStream disk = new FileStream(FileName, FileMode.Open, FileAccess.ReadWrite))
+            using (FileStream disk = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite))
             {
                 disk.Seek(1024 * index, SeekOrigin.Begin);
                 disk.Write(data, 0, data.Length);
@@ -68,8 +68,8 @@ namespace OS_Project
 
         public static byte[] Read_Block(int index)
         {
-            byte[] data = new byte[BlockSize];
-            using (FileStream disk = new FileStream(FileName, FileMode.Open, FileAccess.ReadWrite))
+            byte[] data = new byte[blockSize];
+            using (FileStream disk = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite))
             {
                 disk.Seek(1024 * index, SeekOrigin.Begin);
                 disk.Read(data, 0, data.Length);

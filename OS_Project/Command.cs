@@ -46,7 +46,8 @@ namespace OS_Project
         {
             foreach (var command in commands)
             {
-                Console.WriteLine($"{command.Key}\t{command.Value}\n");
+                String shortDesc = command.Value.Substring(0, command.Value.IndexOf('.') + 1);
+                Console.WriteLine($"{command.Key}\t{shortDesc}\n");
             }
         }
 
@@ -165,6 +166,11 @@ namespace OS_Project
             try
             {
                 var directory = getDirectory(pathParts);
+                if (directory.name.Contains('.'))
+                {
+                    Console.WriteLine("dir display only directory.");
+                    return;
+                }
                 Console.WriteLine($"\nDirectory of {directory.GetCurrentPath()}");
                 Console.WriteLine("============");
                 int numOfFiles = 0, numOfDirs = 0;
@@ -366,7 +372,11 @@ namespace OS_Project
                     int size = fileContent.Length;
                     int index = parentDir.Search(fileName);
                     int first_cluster = 0;
-
+                    if (size>MiniFat.Get_Free_Space())
+                    {
+                        Console.WriteLine("Can't import this file.");
+                        return;
+                    }
                     File_Entry f = new File_Entry(fileName, 0, size, first_cluster, fileContent, parentDir);
                     f.Write_File();
                     Directory_Entry d = new Directory_Entry(fileName, 0, size, f.first_cluster);
@@ -470,7 +480,11 @@ namespace OS_Project
                 }
 
                 var sourceFile = parentSrc.directoryTable[index_src];
-
+                if (sourceFile.size > MiniFat.Get_Free_Space())
+                {
+                    Console.WriteLine("Can't copy this file.");
+                    return;
+                }
                 parentDes.directoryTable.Add(new Directory_Entry(name_des, sourceFile.attribute, sourceFile.size, sourceFile.first_cluster));
                 parentDes.Write_Directory();
             }
