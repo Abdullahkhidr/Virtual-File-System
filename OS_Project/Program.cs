@@ -145,7 +145,7 @@ namespace OS_Project
                     case "copy":
                         if (commandParts.Length >= 2)
                         {
-                            Command.Copy(paths[0], paths.Count>1? paths[1]: new List<string>());
+                            Command.Copy(paths[0], paths.Count > 1 ? paths[1] : new List<string>());
                         }
                         else
                         {

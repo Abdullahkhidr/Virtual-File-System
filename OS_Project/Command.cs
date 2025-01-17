@@ -166,7 +166,7 @@ namespace OS_Project
             try
             {
                 var directory = getDirectory(pathParts);
-                              Console.WriteLine($"\nDirectory of {directory.GetCurrentPath()}");
+                Console.WriteLine($"\nDirectory of {directory.GetCurrentPath()}");
                 Console.WriteLine("============");
                 int numOfFiles = 0, numOfDirs = 0;
                 foreach (var entry in directory.directoryTable)
@@ -243,6 +243,11 @@ namespace OS_Project
                 {
                     var name = pathParts.Last();
                     var parentPath = pathParts;
+                    if (!name.Contains('.'))
+                    {
+                        Console.WriteLine($"Error: maybe this \"{name}\" is not a file name or access is denied.");
+                        return;
+                    }
                     parentPath.RemoveAt(pathParts.Count - 1);
                     var parentDir = getDirectory(parentPath);
                     Console.WriteLine("---------");
@@ -347,65 +352,122 @@ namespace OS_Project
         {
             try
             {
-
-                if (System.IO.File.Exists(path))
+                if (!System.IO.File.Exists(path))
                 {
+                    Console.WriteLine($"Error: Source file '{path}' does not exist.");
+                    return;
+                }
+
+                try
+                {
+                    FileInfo fileInfo = new FileInfo(path);
+                    if (fileInfo.Length == 0)
+                    {
+                        Console.WriteLine("Error: Cannot import empty file.");
+                        return;
+                    }
+
                     Directory parentDir = Program.currentDirectory;
-                    string fileName = path.Split('\\').Last();
+                    string fileName = Path.GetFileName(path);
+
                     if (des.Count > 0)
                     {
-                        var parentPath = des;
+                        var parentPath = new List<string>(des);
                         if (des.Last().Contains('.'))
                         {
                             fileName = des.Last();
-                            parentPath.RemoveAt(des.Count - 1);
+                            parentPath.RemoveAt(parentPath.Count - 1);
                         }
-                        parentDir = getDirectory(parentPath);
-                    }
 
-                    string fileContent = System.IO.File.ReadAllText(path);
-                    int size = fileContent.Length;
-                    int index = parentDir.Search(fileName);
-                    int first_cluster = 0;
-                    if (size>MiniFat.Get_Free_Space())
+                        try
+                        {
+                            parentDir = getDirectory(parentPath);
+                        }
+                        catch (Exception)
+                        {
+                            Console.WriteLine($"Error: Invalid destination path '{string.Join("\\", parentPath)}'");
+                            return;
+                        }
+                    }
+                    try
                     {
-                        Console.WriteLine("Can't import this file.");
+                        Directory_Entry.CleanName(fileName);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine($"Error: Invalid filename '{fileName}'");
                         return;
                     }
-                    File_Entry f = new File_Entry(fileName, 0, size, first_cluster, fileContent, parentDir);
-                    f.writeFile();
-                    Directory_Entry d = new Directory_Entry(fileName, 0, size, f.first_cluster);
+
+                    string fileContent;
+                    try
+                    {
+                        fileContent = System.IO.File.ReadAllText(path);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error reading file: {ex.Message}");
+                        return;
+                    }
+
+                    int size = fileContent.Length;
+                    int index = parentDir.Search(fileName);
+
+                    if (size > MiniFat.Get_Free_Space())
+                    {
+                        Console.WriteLine($"Error: Not enough space to import file. Required: {size} bytes, Available: {MiniFat.Get_Free_Space()} bytes");
+                        return;
+                    }
+
                     if (index != -1)
                     {
                         var answer = "";
                         do
                         {
-                            Console.Write($"Are you sure to overwrite '{path}' [Y/N]?");
-                            answer = Console.ReadLine();
-                        } while (answer.ToLower() != "y" && answer.ToLower() != "n");
-                        if (answer.ToLower() == "n") return;
+                            Console.Write($"File '{fileName}' already exists. Overwrite? [Y/N]: ");
+                            answer = Console.ReadLine()?.ToLower();
+                        } while (answer != "y" && answer != "n");
+
+                        if (answer == "n")
+                        {
+                            Console.WriteLine("Import cancelled.");
+                            return;
+                        }
+
                         parentDir.directoryTable.RemoveAt(index);
                     }
-                    parentDir.directoryTable.Add(d);
-                    parentDir.Write_Directory();
 
+                    File_Entry newFile = new File_Entry(fileName, 0, size, 0, fileContent, parentDir);
+                    newFile.writeFile();
+
+                    Directory_Entry dirEntry = new Directory_Entry(fileName, 0, size, newFile.first_cluster);
+                    parentDir.directoryTable.Add(dirEntry);
+                    parentDir.Write_Directory();
 
                     if (parentDir.parent != null)
                     {
                         parentDir.parent.Update_Content(parentDir.Get_Directory_Entry());
                     }
 
+                    Console.WriteLine($"Successfully imported '{path}' to '{parentDir.GetCurrentPath()}\\{fileName}'");
                 }
-                else
+                catch (IOException ex)
                 {
-                    Console.WriteLine("Error: The specified name is not a file.");
+                    Console.WriteLine($"IO Error: {ex.Message}");
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    Console.WriteLine("Error: Access denied to source file.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error during import: {ex.Message}");
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine($"Critical error: {ex.Message}");
             }
-
         }
 
 
@@ -451,41 +513,77 @@ namespace OS_Project
             try
             {
                 var name_source = src.Last();
-                var name_des = name_source;
                 src.RemoveAt(src.Count - 1);
+
+                var name_dest = name_source; 
                 if (dest.Count > 0 && dest.Last().Contains('.'))
                 {
-                    name_des = dest.Last();
+                    name_dest = dest.Last(); 
                     dest.RemoveAt(dest.Count - 1);
                 }
+
                 var parentSrc = getDirectory(src);
-                var parentDes = getDirectory(dest);
+                var parentDest = getDirectory(dest);
                 int index_src = parentSrc.Search(name_source);
-                int index_dest = parentDes.Search(name_des);
                 if (index_src == -1)
                 {
                     Console.WriteLine($"Error: Source file '{name_source}' not found.");
                     return;
                 }
 
+                int index_dest = parentDest.Search(name_dest);
                 if (index_dest != -1)
                 {
-                    Console.WriteLine($"The file cannot be copied onto itself.");
+                    Console.WriteLine($"Error: Destination file '{name_dest}' already exists.");
                     return;
                 }
 
                 var sourceFile = parentSrc.directoryTable[index_src];
+
                 if (sourceFile.size > MiniFat.Get_Free_Space())
                 {
-                    Console.WriteLine("Can't copy this file.");
+                    Console.WriteLine("Error: Not enough free space to copy the file.");
                     return;
                 }
-                parentDes.directoryTable.Add(new Directory_Entry(name_des, sourceFile.attribute, sourceFile.size, sourceFile.first_cluster));
-                parentDes.Write_Directory();
+
+                File_Entry sourceFileEntry = new File_Entry(
+                    name_source,
+                    sourceFile.attribute,
+                    sourceFile.size,
+                    sourceFile.first_cluster,
+                    "",
+                    parentSrc
+                );
+                sourceFileEntry.readFile();
+
+                File_Entry destFileEntry = new File_Entry(
+                    name_dest,
+                    sourceFile.attribute,
+                    sourceFile.size,
+                    0, 
+                    sourceFileEntry.content,
+                    parentDest
+                );
+                destFileEntry.writeFile();
+
+                Directory_Entry destDirEntry = new Directory_Entry(
+                    name_dest,
+                    sourceFile.attribute,
+                    sourceFile.size,
+                    destFileEntry.first_cluster
+                );
+                parentDest.directoryTable.Add(destDirEntry);
+                parentDest.Write_Directory();
+                if (parentDest.parent != null)
+                {
+                    parentDest.parent.Update_Content(parentDest.Get_Directory_Entry());
+                }
+
+                Console.WriteLine($"File '{name_source}' successfully copied to '{string.Join("\\", dest)}\\{name_dest}'.");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine($"Error: {e.Message}");
             }
         }
 
@@ -493,10 +591,11 @@ namespace OS_Project
         {
             Directory current = Program.currentDirectory;
             current.Read_Directory();
-            if (path.Count == 0)
+            if (path.Count == 0 || (path.Count == 1 && path[0] == "."))
             {
                 return current;
             }
+
             var isAbsPath = path[0] == "O:";
             if (isAbsPath)
             {

@@ -29,7 +29,7 @@ namespace OS_Project
 
         public static void WriteMiniFat()
         {
-            byte[] buffer = new byte[Virtual_Disk.blockSize * 4];
+            byte[] buffer = new byte[Virtual_Disk.clusterSize * 4];
             Buffer.BlockCopy(FAT, 0, buffer, 0, FAT.Length);
 
             using (FileStream disk = new FileStream(Virtual_Disk.fileName, FileMode.Open, FileAccess.ReadWrite))
@@ -43,7 +43,7 @@ namespace OS_Project
 
         public static void ReadMiniFat()
         {
-            byte[] buffer = new byte[Virtual_Disk.blockSize * 4];
+            byte[] buffer = new byte[Virtual_Disk.clusterSize * 4];
 
             using (FileStream disk = new FileStream(Virtual_Disk.fileName, FileMode.Open, FileAccess.ReadWrite))
             {
@@ -52,8 +52,6 @@ namespace OS_Project
                 disk.Read(buffer, 0, buffer.Length);
             }
             Buffer.BlockCopy(buffer, 0, FAT, 0, buffer.Length);
-
-
         }
 
 
