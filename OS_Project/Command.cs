@@ -166,12 +166,7 @@ namespace OS_Project
             try
             {
                 var directory = getDirectory(pathParts);
-                if (directory.name.Contains('.'))
-                {
-                    Console.WriteLine("dir display only directory.");
-                    return;
-                }
-                Console.WriteLine($"\nDirectory of {directory.GetCurrentPath()}");
+                              Console.WriteLine($"\nDirectory of {directory.GetCurrentPath()}");
                 Console.WriteLine("============");
                 int numOfFiles = 0, numOfDirs = 0;
                 foreach (var entry in directory.directoryTable)
@@ -259,7 +254,7 @@ namespace OS_Project
                         int fc = parentDir.directoryTable[index].first_cluster;
                         int sz = parentDir.directoryTable[index].size;
                         File_Entry f = new File_Entry(name, 0, sz, fc, "", parentDir);
-                        f.Read_File();
+                        f.readFile();
 
                         Console.WriteLine(f.content);
                     }
@@ -378,7 +373,7 @@ namespace OS_Project
                         return;
                     }
                     File_Entry f = new File_Entry(fileName, 0, size, first_cluster, fileContent, parentDir);
-                    f.Write_File();
+                    f.writeFile();
                     Directory_Entry d = new Directory_Entry(fileName, 0, size, f.first_cluster);
                     if (index != -1)
                     {
@@ -433,7 +428,7 @@ namespace OS_Project
                     int fc = parentDir.directoryTable[index].first_cluster;
                     int sz = parentDir.directoryTable[index].size;
                     File_Entry f = new File_Entry(name, 0, sz, fc, "", parentDir);
-                    f.Read_File();
+                    f.readFile();
                     using (StreamWriter sw = new StreamWriter(des + name))
                     {
                         sw.WriteLine(f.content);

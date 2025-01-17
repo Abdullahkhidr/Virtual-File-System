@@ -13,13 +13,13 @@ namespace OS_Project
         public Directory parent;
 
 
-        public File_Entry(string n, byte attr, int sz, int fc, string ct = "", Directory pt = null) : base(n, attr, sz, fc)
+        public File_Entry(string name, byte attr, int size, int firstCluster, string cont = "", Directory par = null) : base(name, attr, size, firstCluster)
         {
-            parent = pt;
-            content = ct;
+            parent = par;
+            content = cont;
         }
 
-        public void Write_File()
+        public void writeFile()
         {
 
             int contentLength = content.Length;
@@ -28,16 +28,16 @@ namespace OS_Project
             int remainder = content.Length % 1024;
             
 
-            int fc;
+            int firstCluster;
             if (first_cluster != 0)
-                fc = first_cluster;
+                firstCluster = first_cluster;
             else
             {
-                fc = MiniFat.Get_Available_Block();
-                first_cluster = fc;
+                firstCluster = MiniFat.Get_Available_Block();
+                first_cluster = firstCluster;
             }
 
-            int lc = -1;
+            int lastCluster = -1;
 
             for (int i = 0; i < totalBlocks; i++)
             {
@@ -67,14 +67,14 @@ namespace OS_Project
                         }
                     }
                 }
-                Virtual_Disk.Write_Block(blockData, fc);
-                MiniFat.Set_Value(-1, fc);
-                if (lc != -1)
+                Virtual_Disk.Write_Block(blockData, firstCluster);
+                MiniFat.Set_Value(-1, firstCluster);
+                if (lastCluster != -1)
                 {
-                    MiniFat.Set_Value(fc, lc);
+                    MiniFat.Set_Value(firstCluster, lastCluster);
                 }
-                lc = fc;
-                fc = MiniFat.Get_Available_Block();
+                lastCluster = firstCluster;
+                firstCluster = MiniFat.Get_Available_Block();
             }
 
             MiniFat.WriteMiniFat();
@@ -82,21 +82,21 @@ namespace OS_Project
         }
 
 
-        public void Read_File()
+        public void readFile()
         {
 
             List<byte> data = new List<byte>();
-            int fc = first_cluster;
-            int nc = MiniFat.Get_Value(fc);
-            data.AddRange(Virtual_Disk.Read_Block(fc));
+            int firstCluster = first_cluster;
+            int nextCluster = MiniFat.Get_Value(firstCluster);
+            data.AddRange(Virtual_Disk.Read_Block(firstCluster));
 
-            while (nc != -1)
+            while (nextCluster != -1)
             {
-                fc = nc;
+                firstCluster = nextCluster;
                 if (first_cluster != -1)
                 {
-                    data.AddRange(Virtual_Disk.Read_Block(fc));
-                    nc = MiniFat.Get_Value(fc);
+                    data.AddRange(Virtual_Disk.Read_Block(firstCluster));
+                    nextCluster = MiniFat.Get_Value(firstCluster);
                 }
             }
 
@@ -114,27 +114,27 @@ namespace OS_Project
             }
         }
 
-        public void Delete_File(string name)
+        public void deleteFile(string name)
         {
             if (first_cluster != 0)
             {
-                int fc = first_cluster;
-                int next = MiniFat.Get_Value(fc);
+                int firstCluster = first_cluster;
+                int next = MiniFat.Get_Value(firstCluster);
 
                 do
                 {
-                    MiniFat.Set_Value(0, fc);
-                    fc = next;
-                    if (fc != -1)
-                        next = MiniFat.Get_Value(fc);
+                    MiniFat.Set_Value(0, firstCluster);
+                    firstCluster = next;
+                    if (firstCluster != -1)
+                        next = MiniFat.Get_Value(firstCluster);
 
-                } while (fc != -1);
+                } while (firstCluster != -1);
 
                 MiniFat.WriteMiniFat();
             }
 
-            int y = parent.Search(name);
-            parent.directoryTable.RemoveAt(y);
+            int delIndex = parent.Search(name);
+            parent.directoryTable.RemoveAt(delIndex);
             parent.Write_Directory();
         }
     }
