@@ -631,6 +631,72 @@ namespace OS_Project
 
             return current;
         }
+        public static void DisplayDirectoryTree(List<string> pathParts, string indent = "")
+        {
+            try
+            {
+                var directory = getDirectory(pathParts);
+
+                if (string.IsNullOrEmpty(indent))
+                {
+                    Console.WriteLine($"\nDirectory tree of {directory.GetCurrentPath()}");
+                    Console.WriteLine("=".PadRight(50, '='));
+                }
+
+                long totalSize = 0;
+                int totalFiles = 0;
+                int totalDirs = 0;
+
+                var sortedEntries = directory.directoryTable
+                    .OrderBy(entry => entry.attribute == 0) 
+                    .ThenBy(entry => new string(entry.name).Trim()) 
+                    .ToList();
+
+                foreach (var entry in sortedEntries)
+                {
+                    string name = new string(entry.name).Trim();
+                    bool isDirectory = !entry.name.Contains('.');
+
+                    if (name == "." || name == "..")
+                        continue;
+
+                    if (isDirectory)
+                        totalDirs++;
+                    else
+                    {
+                        totalFiles++;
+                        totalSize += entry.size;
+                    }
+
+                    string marker = isDirectory ? "📁" : "📄";
+                    string size = isDirectory ? "<DIR>" : $"{entry.size} bytes";
+                    Console.WriteLine($"{indent}├─{marker} {name.PadRight(30)} {size}");
+
+                    if (isDirectory)
+                    {
+                        var newPath = new List<string>(pathParts);
+                        newPath.Add(name);
+                        DisplayDirectoryTree(newPath, indent + "│ ");
+                    }
+                }
+
+                if (string.IsNullOrEmpty(indent))
+                {
+                    Console.WriteLine("\nSummary:");
+                    Console.WriteLine("-".PadRight(50, '-'));
+                    Console.WriteLine($"Total Files: {totalFiles}");
+                    Console.WriteLine($"Total Directories: {totalDirs}");
+                    Console.WriteLine($"Total Size: {totalSize} bytes");
+                    Console.WriteLine($"Free Space: {MiniFat.Get_Free_Space()} bytes");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error accessing directory: {e.Message}");
+            }
+        }
+    }
     }
 
-}
+
+

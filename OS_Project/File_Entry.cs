@@ -23,8 +23,8 @@ namespace OS_Project
         {
 
             int contentLength = content.Length;
-            int totalBlocks = (int)Math.Ceiling(content.Length / 1024.0);
-            int fullBlocks = content.Length / 1024;
+            int totalClusters = (int)Math.Ceiling(content.Length / 1024.0);
+            int fullClusters = content.Length / 1024;
             int remainder = content.Length % 1024;
             
 
@@ -33,48 +33,48 @@ namespace OS_Project
                 firstCluster = first_cluster;
             else
             {
-                firstCluster = MiniFat.Get_Available_Block();
+                firstCluster = MiniFat.Get_Available_Cluster();
                 first_cluster = firstCluster;
             }
 
             int lastCluster = -1;
 
-            for (int i = 0; i < totalBlocks; i++)
+            for (int i = 0; i < totalClusters; i++)
             {
-                byte[] blockData = new byte[1024];
+                byte[] ClusterData = new byte[1024];
 
-                if (i < fullBlocks)
+                if (i < fullClusters)
                 {
 
                     for (int j = 0; j < 1024; j++)
                     {
-                        blockData[j] = (byte)content[i * 1024 + j];
+                        ClusterData[j] = (byte)content[i * 1024 + j];
                     }
                 }
                 else
                 {
 
-                    int start = 1024 * fullBlocks;
+                    int start = 1024 * fullClusters;
                     for (int j = 0; j < 1024; j++)
                     {
                         if (j < remainder)
                         {
-                            blockData[j] = (byte)content[start + j];
+                            ClusterData[j] = (byte)content[start + j];
                         }
                         else
                         {
-                            blockData[j] = (byte)'#';
+                            ClusterData[j] = (byte)'#';
                         }
                     }
                 }
-                Virtual_Disk.Write_Block(blockData, firstCluster);
+                Virtual_Disk.Write_Cluster(ClusterData, firstCluster);
                 MiniFat.Set_Value(-1, firstCluster);
                 if (lastCluster != -1)
                 {
                     MiniFat.Set_Value(firstCluster, lastCluster);
                 }
                 lastCluster = firstCluster;
-                firstCluster = MiniFat.Get_Available_Block();
+                firstCluster = MiniFat.Get_Available_Cluster();
             }
 
             MiniFat.WriteMiniFat();
@@ -88,14 +88,14 @@ namespace OS_Project
             List<byte> data = new List<byte>();
             int firstCluster = first_cluster;
             int nextCluster = MiniFat.Get_Value(firstCluster);
-            data.AddRange(Virtual_Disk.Read_Block(firstCluster));
+            data.AddRange(Virtual_Disk.Read_Cluster(firstCluster));
 
             while (nextCluster != -1)
             {
                 firstCluster = nextCluster;
                 if (first_cluster != -1)
                 {
-                    data.AddRange(Virtual_Disk.Read_Block(firstCluster));
+                    data.AddRange(Virtual_Disk.Read_Cluster(firstCluster));
                     nextCluster = MiniFat.Get_Value(firstCluster);
                 }
             }

@@ -61,12 +61,12 @@ namespace OS_Project
             Console.WriteLine("Fat Table: ");
             for (int i = 0; i < FAT.Length; i++)
             {
-                Console.WriteLine($"Block {i}: {FAT[i]}");
+                Console.WriteLine($"Cluster {i}: {FAT[i]}");
             }
         }
 
 
-        public static int Get_Available_Block()
+        public static int Get_Available_Cluster()
         {
             for (int i = 0; i < FAT.Length; i++)
             {
@@ -90,7 +90,7 @@ namespace OS_Project
             FAT[index] = value;
         }
 
-        public static int Get_Number_Of_Free_Blocks()
+        public static int Get_Number_Of_Free_Clusters()
         {
             int count = 0;
             foreach (int f in FAT)
@@ -105,7 +105,7 @@ namespace OS_Project
 
         public static int Get_Free_Space()
         {
-            return Get_Number_Of_Free_Blocks() * 1024;
+            return Get_Number_Of_Free_Clusters() * 1024;
         }
 
     }

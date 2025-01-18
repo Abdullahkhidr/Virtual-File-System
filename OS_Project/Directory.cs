@@ -35,8 +35,8 @@ namespace OS_Project
             }
 
             int mx = Math.Max(directory_table.Length, 1);
-            int totalBlocks = (int)Math.Ceiling(mx / 1024.0);
-            int fullBlocks = directory_table.Length / 1024;
+            int totalClusters = (int)Math.Ceiling(mx / 1024.0);
+            int fullClusters = directory_table.Length / 1024;
             int remainder = directory_table.Length % 1024;
 
             int fc;
@@ -44,47 +44,47 @@ namespace OS_Project
                 fc = first_cluster;
             else
             {
-                fc = MiniFat.Get_Available_Block();
+                fc = MiniFat.Get_Available_Cluster();
                 first_cluster = fc;
             }
 
             int lc = -1;
 
-            for (int i = 0; i < totalBlocks; i++)
+            for (int i = 0; i < totalClusters; i++)
             {
-                byte[] blockData = new byte[1024];
-                if (i < fullBlocks)
+                byte[] ClusterData = new byte[1024];
+                if (i < fullClusters)
                 {
                     for (int j = 0; j < 1024; j++)
                     {
-                        blockData[j] = directory_table[i * 1024 + j];
+                        ClusterData[j] = directory_table[i * 1024 + j];
                     }
                 }
                 else
                 {
-                    int indx = 1024 * fullBlocks;
+                    int indx = 1024 * fullClusters;
                     for (int j = 0; j < 1024; j++)
                     {
                         if (j < remainder)
                         {
-                            blockData[j] = directory_table[indx + j];
+                            ClusterData[j] = directory_table[indx + j];
                         }
                         else
                         {
-                            blockData[j] = (byte)'#';
+                            ClusterData[j] = (byte)'#';
                         }
 
                     }
                 }
 
-                Virtual_Disk.Write_Block(blockData, fc);
+                Virtual_Disk.Write_Cluster(ClusterData, fc);
                 MiniFat.Set_Value(-1, fc);
                 if (lc != -1)
                 {
                     MiniFat.Set_Value(fc, lc);
                 }
                 lc = fc;
-                fc = MiniFat.Get_Available_Block();
+                fc = MiniFat.Get_Available_Cluster();
 
             }
 
@@ -100,14 +100,14 @@ namespace OS_Project
                 List<Directory_Entry> directory_table = new List<Directory_Entry>();
                 int fc = first_cluster;
                 int nc = MiniFat.Get_Value(fc);
-                data.AddRange(Virtual_Disk.Read_Block(fc));
+                data.AddRange(Virtual_Disk.Read_Cluster(fc));
 
                 while (nc != -1)
                 {
                     fc = nc;
                     if (first_cluster != -1)
                     {
-                        data.AddRange(Virtual_Disk.Read_Block(fc));
+                        data.AddRange(Virtual_Disk.Read_Cluster(fc));
                         nc = MiniFat.Get_Value(fc);
                     }
                 }

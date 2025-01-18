@@ -33,8 +33,8 @@ namespace OS_Project
 
         public static void Main(string[] args)
         {
-            Virtual_Disk.Initialize();
 
+            Virtual_Disk.Initialize();
             while (true)
             {
                 Console.Write(currentDirectory.GetCurrentPath() + "\\> ");
@@ -187,7 +187,9 @@ namespace OS_Project
                             Console.WriteLine("Usage: export <source> <destination>");
                         }
                         break;
-
+                    case "tree":
+                        Command.DisplayDirectoryTree(splitPath(currentDirectory.GetCurrentPath()));
+                        break;
 
                     default:
 

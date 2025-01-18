@@ -12,9 +12,9 @@ namespace OS_Project
     {
         public const string fileName = "file-system.txt";
         public const int clusterSize = 1024;
-        private const byte superBlock = (byte)'0';
+        private const byte superCluster = (byte)'0';
         private const byte FAT = (byte)'*';
-        private const byte freeBlock = (byte)'#';
+        private const byte freeCluster = (byte)'#';
 
         public static void Initialize()
         {
@@ -28,7 +28,7 @@ namespace OS_Project
                 {
                     for (int i = 0; i < clusterSize; i++)
                     {
-                        disk.WriteByte(superBlock);
+                        disk.WriteByte(superCluster);
                     }
                    
                     for (int j = 0; j < clusterSize * 4; j++)
@@ -39,7 +39,7 @@ namespace OS_Project
                     for (int i = 0; i < (clusterSize - 5) * clusterSize; i++)
                     {
                       
-                        disk.WriteByte(freeBlock);
+                        disk.WriteByte(freeCluster);
                         
                     }
                 }
@@ -56,7 +56,7 @@ namespace OS_Project
             }
         }
 
-        public static void Write_Block(byte[] data, int index)
+        public static void Write_Cluster(byte[] data, int index)
         {
             using (FileStream disk = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite))
             {
@@ -65,7 +65,7 @@ namespace OS_Project
             }
         }
 
-        public static byte[] Read_Block(int index)
+        public static byte[] Read_Cluster(int index)
         {
             byte[] data = new byte[clusterSize];
             using (FileStream disk = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite))
